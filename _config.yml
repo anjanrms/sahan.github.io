@@ -1,0 +1,17 @@
+markdown: rdiscount
+pygments: true
+permalink: /posts/:title
+auto: true
+rdiscount:
+  extensions: [smart]
+title : sahan.github.io
+production_url : http://sahan.github.io
+description: "Random musings from an OSS enthusiast."
+disqus_shortname: lahirusj
+analytics: UA-40937518-1
+author :
+  name : Lahiru Sahan Jayasinghe
+  github : sahan
+  twitter : 
+  coderwall : sahan
+  email: lahiru@lonepulse.com
