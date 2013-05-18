@@ -1,2 +1,0 @@
-
-...bootstrapping `sahan.github.io`
