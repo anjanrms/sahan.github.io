@@ -6,12 +6,12 @@ rdiscount:
   extensions: [smart]
 title : sahan.github.io
 production_url : http://sahan.github.io
-description: "Random musings from an OSS enthusiast."
+description: "Random Musings From An OSS Enthusiast."
 disqus_shortname: lahirusj
 analytics: UA-40937518-1
 author :
   name : Lahiru Sahan Jayasinghe
   github : sahan
-  twitter : 
+  twitter : lahirusj
   coderwall : sahan
   email: lahiru@lonepulse.com
