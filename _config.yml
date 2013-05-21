@@ -4,7 +4,7 @@ permalink: /posts/:title
 auto: true
 rdiscount:
   extensions: [smart]
-title : sahan.github.io
+title : sahan.me
 production_url : http://sahan.github.io
 description: "Random Musings From An OSS Enthusiast."
 disqus_shortname: lahirusj
