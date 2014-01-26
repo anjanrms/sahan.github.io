@@ -5,7 +5,7 @@ auto: true
 rdiscount:
   extensions: [smart]
 title : sahan.me
-production_url : http://sahan.github.io
+production_url : http://sahan.me
 description: "Random Musings From An OSS Enthusiast."
 disqus_shortname: lahirusj
 analytics: UA-40937518-1
@@ -15,4 +15,4 @@ author :
   twitter : lahirusj
   coderwall : sahan
   linkedin: lsjayasinghe
-  email: sahan@lonepulse.com
+  email: hi@sahan.me
