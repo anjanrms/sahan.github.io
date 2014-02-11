@@ -187,6 +187,63 @@ We can use [awk](http://www.hcs.harvard.edu/~dholland/computers/awk.html) to mak
 > You might even use the endpoints `localhost:9200/github/_bulk` or `localhost:9200/github/2014-02-02-14/_bulk` in which case the index and/or type can be skipped from the individual actions.
 
 <br>
+Once we're done with that, we can start searching the documents to make use of all this event data. A search endpoint terminates with `_search` and is available on the whole node (e.g. `localhost:9200/_search`) or restricted to an index and type (e.g. `localhost:9200/github/_search`,  `localhost:9200/github/2014-02-02-14/_search`).   
+
+ES supports [URI searching](http://www.elasticsearch.org/guide/en/elasticsearch/reference/current/search-uri-request.html) for simple queries on fields. Let's try one to make sure we've indexed our data properly.   
+> You might want to use [Sense](https://github.com/bleskes/sense) for these queries to have them pretty printed.   
+
+<pre class="terminal">
+<c>curl</c> -XGET localhost:9200/github/2014-02-02-14/_search?q=language:Java
+
+{
+  "took": 7,
+  "timed_out": false,
+  "_shards": {
+    "total": 5,
+    "successful": 5,
+    "failed": 0
+  },
+  "hits": {
+    "total": 1178,
+    "max_score": 3.5452383,
+    "hits": [
+      {
+        "_index": "github",
+        "_type": "2014-02-02-14",
+
+...
+</pre>
+> Searches the type `2014-02-02-14` on index `github` for all documents whose *language* is `Java`.   
+
+<br>
+The result is a single JSON object which describes some query statistics and gives you the matching documents in an array named `hits` under the key `_source`. The enclosing object is also named hits and specifies the total number of matching documents and the maximum score. A score is an indication of how similar each document was to the query. If you're interested to see how ES arrives this score, retry the query with the **explain** parameter.   
+
+<pre class="terminal">
+<c>curl</c> -XGET 'localhost:9200/github/2014-02-02-14/_search?q=language:Java&explain'
+</pre>
+> Scoring information can be found in the object `_explanation`.   
+
+<br>
+If you're paying attention to a only a few selected properties in the resulting documents, use the **fields** parameter to restrict the information you want by specifying a comma-separate list of fields.   
+
+<pre class="terminal">
+<c>curl</c> -XGET 'localhost:9200/github/2014-02-02-14/_search?q=language:Java&fields=repository'
+</pre>
+> Which gives you only the repository information under `fields`.   
+
+<br>
+You might notice that even though the total number of hits were 1178, the array contains only 10 objects. This is to be expected since ES returns only 10 hits by default. You can change this with the **size** parameter and use the **from** parameter to paginate across all the hits.   
+
+<pre class="terminal">
+<c>curl</c> -XGET 'localhost:9200/github/2014-02-02-14/_search?q=language:Java&fields=repository&size=50&from=200'
+</pre>
+
+<br>
+URI searching will only get you so far. For analytics you should be using the [Query DSL](http://www.elasticsearch.org/guide/en/elasticsearch/reference/current/query-dsl.html). This separate [DSL](https://en.wikipedia.org/wiki/Domain-specific_language) helps you construct *compound* queries by expressing restrictions in *atomic* (or compound) queries which can be combined and filtered.   
+
+
+
+<br>
 <br>
 `to be continued...`
 <br>
