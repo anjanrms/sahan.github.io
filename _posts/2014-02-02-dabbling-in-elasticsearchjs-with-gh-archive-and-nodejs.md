@@ -213,7 +213,7 @@ ES supports [URI searching](http://www.elasticsearch.org/guide/en/elasticsearch/
 
 ...
 </pre>
-> Searches the type `2014-02-02-14` on index `github` for all documents whose *language* is `Java`.   
+> Searches the type `2014-02-02-14` on index `github` for all events associated with a repository whose *language* is `Java`.   
 
 <br>
 The result is a single JSON object which describes some query statistics and gives you the matching documents in an array named `hits` under the key `_source`. The enclosing object is also named hits and specifies the total number of matching documents and the maximum score. A score is an indication of how similar each document was to the query. If you're interested to see how ES arrives this score, retry the query with the **explain** parameter.   
@@ -239,8 +239,197 @@ You might notice that even though the total number of hits were 1178, the array 
 </pre>
 
 <br>
-URI searching will only get you so far. For analytics you should be using the [Query DSL](http://www.elasticsearch.org/guide/en/elasticsearch/reference/current/query-dsl.html). This separate [DSL](https://en.wikipedia.org/wiki/Domain-specific_language) helps you construct *compound* queries by expressing restrictions in *atomic* (or compound) queries which can be combined and filtered.   
+URI searching will only get you so far. For analytics you should be using the [Query DSL](http://www.elasticsearch.org/guide/en/elasticsearch/reference/current/query-dsl.html). 
 
+
+<br>
+<h5>A primer on Query DSL</h5>
+<br>
+
+This separate [DSL](https://en.wikipedia.org/wiki/Domain-specific_language) is written in JSON and helps you construct *compound* queries by expressing restrictions in *atomic* (or compound) queries which can be combined and filtered. One of the simplest queries which can be executed is the `match_all` query which matches *all* documents.   
+
+<pre class="terminal">
+<c>curl</c> -XPOST localhost:9200/github/2014-02-02-14/_search -d '
+{
+  "query": {
+    "match_all": {}
+  }
+}'
+
+{
+  "took": 4,
+  "timed_out": false,
+  "_shards": {
+    "total": 5,
+    "successful": 5,
+    "failed": 0
+  },
+  "hits": {
+
+...
+</pre>
+
+<br>
+The Query DSL is written within a property named `"query"` in a JSON object and *posted* to the search endpoint. If we wanted to retry our previous search for all events associated with a repository whose primary language is Java, we would use a [`term`](http://www.elasticsearch.org/guide/en/elasticsearch/reference/current/query-dsl-term-query.html) query, which is an example of an atomic query.   
+
+<pre class="terminal">
+<c>curl</c> -XPOST localhost:9200/github/2014-02-02-14/_search -d '
+{
+  "query": {
+      "term": { "language":"java" }
+  }
+}'
+</pre>
+> Use lowercase for the field value.   
+
+<br>
+Let's restrict this to push events. I can use two term queries within a [`bool`](http://www.elasticsearch.org/guide/en/elasticsearch/reference/current/query-dsl-bool-query.html) query, which is an example of a compound query. I'll include the *size* property to make sure I get the first 50 hits.   
+
+<pre class="terminal">
+<c>curl</c> -XPOST localhost:9200/github/2014-02-02-14/_search -d '
+{
+  "query": {
+      "bool": {
+          "must" : [ 
+            { 
+              "term" : { "language":"java" } 
+            },
+            { 
+              "term" : { "type":"pushevent" } 
+            }
+        ]
+      } 
+    },
+  "size": 50
+}'
+</pre>
+
+<br>
+The query above is essentially a match for exact values; the scores of individual hits are of no concern and the results are unlikely to change. So we could replace it with a [filter](http://www.elasticsearch.org/guide/en/elasticsearch/reference/current/query-dsl-filters.html) instead. Results of filters are cached and made available to other compound queries which might use the filter with the **same parameters**. Such queries will see a clear performance gain compared with the version that doesn't use the filter. Let's try the filter by wrapping it in a [`constant_score`](http://www.elasticsearch.org/guide/en/elasticsearch/reference/current/query-dsl-constant-score-query.html) query.   
+
+<pre class="terminal">
+<c>curl</c> -XPOST localhost:9200/github/2014-02-02-14/_search -d '
+{
+  "query": {
+      "constant_score": {
+          "filter": {
+              "bool": {
+                 "must" : [ 
+                    { 
+                      "term" : { "language":"java" } 
+                    },
+                    { 
+                      "term" : { "type":"pushevent" } 
+                    }
+                 ],
+                 "_cache": true
+              }
+          }
+      } 
+  }              
+}'
+</pre>
+> The result of the bool filter is not cached by default - caching is enabled with `"_cache": true`   
+
+<br>
+A term query is an example where the text provided is not analyzed. If we wanted all events associated with a repository whose description contains any of the words "nodejs" or "node**.**js" we might use a [`match`](http://www.elasticsearch.org/guide/en/elasticsearch/reference/current/query-dsl-match-query.html) query. A match query will analyze the given text and construct a boolean query of type *OR* by default.    
+
+<pre class="terminal">
+<c>curl</c> -XPOST localhost:9200/github/2014-02-02-14/_search -d '
+{
+  "query": {
+      "match": {
+          "repository.description": "nodejs node.js"
+      } 
+  }              
+}'
+</pre>
+
+<br>
+We could switch this to an *AND* type by enclosing the field value in a separate object that identifies the boolean operator.
+
+<pre class="terminal">
+<c>curl</c> -XPOST localhost:9200/github/2014-02-02-14/_search -d '
+{
+  "query": {
+      "match": {
+          "repository.description": {
+              "query": "jquery plugin",
+              "operator" : "and"
+          }
+      }
+  }       
+}'
+</pre>
+
+<br>
+ES also provides you with a [`regexp`](http://www.elasticsearch.org/guide/en/elasticsearch/reference/current/query-dsl-regexp-query.html) query which is effectively a term query that uses a regular expression.   
+
+<pre class="terminal">
+<c>curl</c> -XPOST localhost:9200/github/2014-02-02-14/_search -d '
+{
+  "query": {
+      "regexp": {
+          "language": "java(script)?"
+      } 
+  }              
+}'
+</pre>
+> Note that wildcards matches will affect you performance. Check out the [`wildcard`](http://www.elasticsearch.org/guide/en/elasticsearch/reference/current/query-dsl-wildcard-query.html) query as well.   
+
+<br>
+The [`range`](http://www.elasticsearch.org/guide/en/elasticsearch/reference/current/query-dsl-range-query.html) query might be useful for numeric fields. For example, to retrieve all events associated with a repository whose primary language is either Java or JavaScript with a stargazer count greater than or equal to 1000.   
+
+<pre class="terminal">
+<c>curl</c> -XPOST localhost:9200/github/2014-02-02-14/_search -d '
+{
+  "query": {
+      "bool": {
+          "must" : [ 
+              {
+                "regexp": { "language": "java(script)?" }
+              },
+              {
+                "range" : { "stargazers" : { "gte" : 1000 } }
+              }
+          ]
+      }    
+  }
+}'
+</pre>
+
+<br>
+We could rewrite the above as an [`and`](http://www.elasticsearch.org/guide/en/elasticsearch/reference/current/query-dsl-and-filter.html) filter and apply on any query by executing it as a *filtered query*.   
+
+<pre class="terminal">
+<c>curl</c> -XPOST localhost:9200/github/2014-02-02-14/_search -d '
+{
+  "query": {
+      "filtered" : {
+
+          "query": {
+              "match": {
+                  "repository.description": "mobile"
+              } 
+          },
+
+          "filter": {
+              "and": {
+                  "filters" : [ 
+                      {
+                        "regexp": { "language": "java(script)?" }
+                      },
+                      {
+                        "range" : { "stargazers" : { "gte" : 1000 } }
+                      }
+                  ],
+                  "_cache" : true
+              }    
+          }
+      }
+  }
+}'
+</pre>
 
 
 <br>
