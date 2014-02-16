@@ -5,7 +5,7 @@ category: posts
 ---
 
 <br>
-This is a continuation of [Dabbling in ElasticSearch - PART 1](/posts/dabbling-in-elasticsearch-part-1-with-github-archive), where we create a minimal NodeJS application which uses the ElasticSearch (ES) [JavaScript client](http://www.elasticsearch.org/guide/en/elasticsearch/client/javascript-api/current/index.html). We'll be using [ExpressJS](http://expressjs.com) v3.4.8 with [JADE](http://jade-lang.com/) as the template engine, along with [morris.js](http://www.oesmith.co.uk/morris.js/) for a crude visualization of the data.   
+This is a continuation of [Dabbling in ElasticSearch - PART 1](/posts/dabbling-in-elasticsearch-part-1-with-github-archive), where we create a minimal NodeJS application which uses the ElasticSearch (ES) [JavaScript client](http://www.elasticsearch.org/guide/en/elasticsearch/client/javascript-api/current/index.html). You can browse the [source code](https://github.com/sahan/sahan.github.io/tree/master/resources/elasticnode) for this application or [download](https://github.com/sahan/sahan.github.io/raw/master/downloads/elasticnode-0.0.1.zip) it as a ZIP archive. We'll be using [ExpressJS](http://expressjs.com) v3.4.8 with [JADE](http://jade-lang.com/) as the template engine, along with [morris.js](http://www.oesmith.co.uk/morris.js/) for a crude visualization of the data.   
 
 To get started quickly, install express globally and generate a boilerplate.   
 
@@ -306,4 +306,4 @@ exports.index = function(req, res){
 ![Visualizing ES Results](/images/elasticnode.png "Visualizing ES Results")
 
 <br>
-I hope these two posts have peaked your interest in ElasticSearch. For more information head over to [elasticsearch.org/resources](http://www.elasticsearch.org/resources) or checkout the [MEAP chapters](http://www.manning.com/hinman) for ES In Action. You might also be interesting in reading the [case studies](http://www.elasticsearch.org/case-studies) to see how ES is being used by some famous companies.   
+I hope these two posts have peaked your interest in ElasticSearch. The complete source is available [here](https://github.com/sahan/sahan.github.io/tree/master/resources/elasticnode) for browsing, or you can download it as a ZIP archive [here](https://github.com/sahan/sahan.github.io/raw/master/downloads/elasticnode-0.0.1.zip). For more information head over to [elasticsearch.org/resources](http://www.elasticsearch.org/resources). You might also be interesting in reading the [case studies](http://www.elasticsearch.org/case-studies) to see how ES is being used by some famous companies.   
