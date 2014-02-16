@@ -79,7 +79,11 @@
     </div>
   </div>
   
+  {% if page.category == 'posts' %} 
+  <div class="banner" style="background-image: url('/images/posts.jpg')"></div>
+  {% else %}
   <div id="banner" class="banner"></div>
+  {% endif %}
   
   <div class="container">
     {{ content }}
